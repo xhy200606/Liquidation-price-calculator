@@ -43,13 +43,21 @@ function calculateByMargin(
   margin: number,
   positionSize: number,
   positionUnit: PositionUnit,
+  contractSize: number,
   maintenanceRate: number
 ): CalculationResult {
-  if (price <= 0 || margin <= 0 || positionSize <= 0 || maintenanceRate < 0 || maintenanceRate >= 1) {
+  if (
+    price <= 0 ||
+    margin <= 0 ||
+    positionSize <= 0 ||
+    contractSize <= 0 ||
+    maintenanceRate < 0 ||
+    maintenanceRate >= 1
+  ) {
     return emptyResult();
   }
 
-  const quantity = positionUnit === "usdt" ? positionSize / price : positionSize;
+  const quantity = positionUnit === "usdt" ? positionSize / price : positionSize * contractSize;
   if (quantity <= 0) {
     return emptyResult();
   }
@@ -97,6 +105,7 @@ function App() {
   const [margin, setMargin] = useState("10");
   const [positionSize, setPositionSize] = useState("1");
   const [positionUnit, setPositionUnit] = useState<PositionUnit>("contracts");
+  const [contractSize, setContractSize] = useState("1");
   const [maintenanceRate, setMaintenanceRate] = useState("0.5");
 
   const result = useMemo(() => {
@@ -107,8 +116,15 @@ function App() {
       return calculateByLeverage(currentPrice, toNumber(leverage), mmr);
     }
 
-    return calculateByMargin(currentPrice, toNumber(margin), toNumber(positionSize), positionUnit, mmr);
-  }, [leverage, maintenanceRate, margin, mode, positionSize, positionUnit, price]);
+    return calculateByMargin(
+      currentPrice,
+      toNumber(margin),
+      toNumber(positionSize),
+      positionUnit,
+      toNumber(contractSize),
+      mmr
+    );
+  }, [contractSize, leverage, maintenanceRate, margin, mode, positionSize, positionUnit, price]);
 
   return (
     <main className="app-shell">
@@ -181,6 +197,16 @@ function App() {
                     onChange={setPositionUnit}
                   />
                 </Field>
+                {positionUnit === "contracts" ? (
+                  <Field
+                    label="每手数量"
+                    value={contractSize}
+                    onChange={setContractSize}
+                    inputMode="decimal"
+                    suffix="单位/手"
+                    helper="默认 1，表示 1 手 = 1 个单位标的。"
+                  />
+                ) : null}
               </>
             )}
 
@@ -217,7 +243,7 @@ function App() {
         <section className="glass-panel note-panel">
           <CircleHelp size={18} />
           <p>
-            公式采用简化逐仓模型。保证金模式会先用仓位计算每单位保证金；仓位选择 USDT 时按名义价值 ÷ 现价换算。不含手续费、资金费率、滑点、阶梯维持保证金和交易所自动减仓规则。
+            公式采用简化逐仓模型。保证金模式会先用仓位计算每单位保证金；仓位选择手时按手数 × 每手数量换算，选择 USDT 时按名义价值 ÷ 现价换算。
           </p>
         </section>
       </section>
