@@ -1,0 +1,27 @@
+{
+  "name": "liquidation-price-calculator",
+  "version": "0.1.0",
+  "description": "A macOS-style liquidation price calculator for long and short positions.",
+  "author": "Codex",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "frontend:dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "dist": "tauri build",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.5.0",
+    "@vitejs/plugin-react": "^4.5.0",
+    "vite": "^6.3.5",
+    "typescript": "^5.8.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "lucide-react": "^0.511.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.5.0"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Liquidation Price Calculator",
+  "version": "0.1.0",
+  "identifier": "local.liquidation.price.calculator",
+  "build": {
+    "beforeDevCommand": "npm run frontend:dev",
+    "devUrl": "http://127.0.0.1:5173",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "macOSPrivateApi": true,
+    "windows": [
+      {
+        "title": "Liquidation Price Calculator",
+        "width": 1080,
+        "height": 760,
+        "minWidth": 900,
+        "minHeight": 680,
+        "decorations": true,
+        "transparent": true,
+        "shadow": true,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["dmg", "app"],
+    "category": "Finance",
+    "copyright": "Copyright 2026",
+    "shortDescription": "Liquidation price calculator",
+    "longDescription": "A lightweight macOS liquidation price calculator for long and short positions."
+  }
+}
