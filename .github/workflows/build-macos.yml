@@ -29,9 +29,6 @@ jobs:
 
       - name: Build macOS app
         run: npm run dist
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ""
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

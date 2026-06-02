@@ -9,7 +9,7 @@
     "dev": "vite --host 127.0.0.1",
     "frontend:dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
-    "dist": "tauri build",
+    "dist": "tauri build --bundles dmg,app",
     "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {
