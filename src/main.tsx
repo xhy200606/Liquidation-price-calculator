@@ -4,6 +4,7 @@ import { ArrowDownLeft, ArrowUpRight, Calculator, CircleHelp, Gauge, Percent, Wa
 import "./styles.css";
 
 type Mode = "leverage" | "margin";
+type PositionUnit = "contracts" | "usdt";
 
 type CalculationResult = {
   long: number | null;
@@ -37,11 +38,23 @@ function calculateByLeverage(price: number, leverage: number, maintenanceRate: n
   return normalizeResult(price, long, short);
 }
 
-function calculateByMargin(price: number, marginPerUnit: number, maintenanceRate: number): CalculationResult {
-  if (price <= 0 || marginPerUnit <= 0 || maintenanceRate < 0 || maintenanceRate >= 1) {
+function calculateByMargin(
+  price: number,
+  margin: number,
+  positionSize: number,
+  positionUnit: PositionUnit,
+  maintenanceRate: number
+): CalculationResult {
+  if (price <= 0 || margin <= 0 || positionSize <= 0 || maintenanceRate < 0 || maintenanceRate >= 1) {
     return emptyResult();
   }
 
+  const quantity = positionUnit === "usdt" ? positionSize / price : positionSize;
+  if (quantity <= 0) {
+    return emptyResult();
+  }
+
+  const marginPerUnit = margin / quantity;
   const long = (price - marginPerUnit) / (1 - maintenanceRate);
   const short = (price + marginPerUnit) / (1 + maintenanceRate);
 
@@ -82,6 +95,8 @@ function App() {
   const [price, setPrice] = useState("100");
   const [leverage, setLeverage] = useState("10");
   const [margin, setMargin] = useState("10");
+  const [positionSize, setPositionSize] = useState("1");
+  const [positionUnit, setPositionUnit] = useState<PositionUnit>("contracts");
   const [maintenanceRate, setMaintenanceRate] = useState("0.5");
 
   const result = useMemo(() => {
@@ -92,8 +107,8 @@ function App() {
       return calculateByLeverage(currentPrice, toNumber(leverage), mmr);
     }
 
-    return calculateByMargin(currentPrice, toNumber(margin), mmr);
-  }, [leverage, maintenanceRate, margin, mode, price]);
+    return calculateByMargin(currentPrice, toNumber(margin), toNumber(positionSize), positionUnit, mmr);
+  }, [leverage, maintenanceRate, margin, mode, positionSize, positionUnit, price]);
 
   return (
     <main className="app-shell">
@@ -140,14 +155,33 @@ function App() {
                 helper="用于估算逐仓场景下的初始保证金率。"
               />
             ) : (
-              <Field
-                label="保证金数"
-                value={margin}
-                onChange={setMargin}
-                inputMode="decimal"
-                suffix="每 1 单位"
-                helper="缺少仓位数量时，按每 1 单位标的的保证金计算。"
-              />
+              <>
+                <Field
+                  label="保证金数"
+                  value={margin}
+                  onChange={setMargin}
+                  inputMode="decimal"
+                  suffix="USDT"
+                  helper="逐仓保证金总额。"
+                />
+                <Field
+                  label="仓位"
+                  value={positionSize}
+                  onChange={setPositionSize}
+                  inputMode="decimal"
+                  suffix={positionUnit === "contracts" ? "手" : "USDT"}
+                  helper={positionUnit === "contracts" ? "按标的数量计算，1 手按 1 单位标的处理。" : "按仓位名义价值计算，会用现价换算为标的数量。"}
+                >
+                  <SegmentedControl
+                    value={positionUnit}
+                    options={[
+                      { label: "手", value: "contracts" },
+                      { label: "USDT", value: "usdt" }
+                    ]}
+                    onChange={setPositionUnit}
+                  />
+                </Field>
+              </>
             )}
 
             <Field
@@ -183,7 +217,7 @@ function App() {
         <section className="glass-panel note-panel">
           <CircleHelp size={18} />
           <p>
-            公式采用简化逐仓模型，不含手续费、资金费率、滑点、阶梯维持保证金和交易所自动减仓规则。用于快速估算，实际强平价请以交易所风险引擎为准。
+            公式采用简化逐仓模型。保证金模式会先用仓位计算每单位保证金；仓位选择 USDT 时按名义价值 ÷ 现价换算。不含手续费、资金费率、滑点、阶梯维持保证金和交易所自动减仓规则。
           </p>
         </section>
       </section>
@@ -198,18 +232,45 @@ type FieldProps = {
   suffix: string;
   helper: string;
   inputMode: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+  children?: React.ReactNode;
 };
 
-function Field({ label, value, onChange, suffix, helper, inputMode }: FieldProps) {
+function Field({ label, value, onChange, suffix, helper, inputMode, children }: FieldProps) {
   return (
-    <label className="field">
-      <span className="field-label">{label}</span>
+    <div className="field">
+      <span className="field-top">
+        <span className="field-label">{label}</span>
+        {children}
+      </span>
       <span className="input-wrap">
         <input value={value} onChange={(event) => onChange(event.target.value)} inputMode={inputMode} />
         <span>{suffix}</span>
       </span>
       <small>{helper}</small>
-    </label>
+    </div>
+  );
+}
+
+type SegmentedControlProps<T extends string> = {
+  value: T;
+  options: Array<{ label: string; value: T }>;
+  onChange: (value: T) => void;
+};
+
+function SegmentedControl<T extends string>({ value, options, onChange }: SegmentedControlProps<T>) {
+  return (
+    <span className="mini-switch" role="tablist" aria-label="仓位单位">
+      {options.map((option) => (
+        <button
+          className={value === option.value ? "active" : ""}
+          key={option.value}
+          onClick={() => onChange(option.value)}
+          type="button"
+        >
+          {option.label}
+        </button>
+      ))}
+    </span>
   );
 }
 

@@ -140,10 +140,45 @@ h1 {
   gap: 8px;
 }
 
+.field-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .field-label {
   color: rgba(18, 33, 46, 0.78);
   font-size: 13px;
   font-weight: 680;
+}
+
+.mini-switch {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(48px, 1fr));
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.74);
+}
+
+.mini-switch button {
+  min-height: 27px;
+  padding: 0 10px;
+  color: rgba(18, 33, 46, 0.62);
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.mini-switch button.active {
+  color: #0e2535;
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: 0 8px 18px rgba(46, 77, 98, 0.12), inset 0 1px rgba(255, 255, 255, 0.9);
 }
 
 .input-wrap {
